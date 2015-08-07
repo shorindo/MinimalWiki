@@ -1,0 +1,17 @@
+body { padding:0; margin:0; overflow:hidden; }
+textarea { outline:0; }
+h1 { font-size: 150%; }
+h2 { font-size: 120%; }
+#tab-view, #tab-edit {
+    width:100%;
+    font-size: 100%;
+    border: none;
+    padding: 5px;
+    overflow-y: auto;
+    font-family: monospace;
+    display: none;
+}
+#tab-edit {
+    background: #FEFEFE;
+}
+
