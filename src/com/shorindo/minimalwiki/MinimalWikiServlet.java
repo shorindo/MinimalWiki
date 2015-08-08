@@ -37,15 +37,24 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class MinimalWikiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private static final Logger LOG = Logger.getLogger(MinimalWikiServlet.class);
+    private static ContentManager contentManager;
     File dataPath;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         File base = new File(config.getServletContext().getRealPath("/"));
+        LOG.debug("base=" + base.getAbsolutePath());
         String name = base.getName();
         dataPath = new File(base.getParentFile(), name + "-data");
         if (!dataPath.exists()) {
             dataPath.mkdirs();
+        }
+        contentManager = new ContentManager(dataPath);
+        try {
+            contentManager.createSiteMap();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         super.init(config);
     }
@@ -61,19 +70,14 @@ public class MinimalWikiServlet extends HttpServlet {
             RequestDispatcher dispatcher = request.getServletContext().getNamedDispatcher("default");
             dispatcher.forward(request, response);
         } else {
-            request.setAttribute("title", getWikiName(new String(path.getBytes("ISO-8859-1"), "UTF-8")));
-            File wikiFile = getWikiFile(path);
-            if (wikiFile.exists()) {
-                StringBuffer sb = new StringBuffer();
-                Reader reader = new InputStreamReader(new FileInputStream(wikiFile));
-                int len = 0;
-                char[] buff = new char[2048];
-                while ((len = reader.read(buff)) > 0) {
-                    sb.append(buff, 0, len);
-                }
-                reader.close();
+            path = path.replaceAll("^/", "").replaceAll("/$", "");
+            path = new String(path.getBytes("ISO-8859-1"), "UTF-8");
+            LOG.debug("doGet(" + path + ")");
+            request.setAttribute("title", contentManager.getWikiName(path));
+            String wikiText = contentManager.getWikiText(path);
+            if (wikiText != null) {
                 request.setAttribute("active", "tab-view");
-                request.setAttribute("wikiText", sb.toString());
+                request.setAttribute("wikiText", wikiText);
             } else {
                 request.setAttribute("active", "tab-edit");
                 request.setAttribute("wikiText", "");
@@ -86,12 +90,22 @@ public class MinimalWikiServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String path = request.getPathInfo();
+        String method = request.getParameter("method");
+        path = new String(path.getBytes("ISO-8859-1"), "UTF-8");
+        LOG.debug("doPost(" + path + "," + method + ")");
+        if ("save".equals(method)) {
+            contentManager.putWikiText(path, request.getParameter("wikiText"));
+        }
+    }
+
+    /*
+    protected void doSave(String path, String wikiText) throws IOException {
         File wikiFile = getWikiFile(path);
         if (!wikiFile.exists()) {
             wikiFile.getParentFile().mkdirs();
         }
         Writer writer = new OutputStreamWriter(new FileOutputStream(wikiFile), "UTF-8");
-        writer.write(request.getParameter("wikiText"));
+        writer.write(wikiText);
         writer.close();
     }
 
@@ -99,8 +113,8 @@ public class MinimalWikiServlet extends HttpServlet {
         if (uri == null || "".equals(uri) || "/".equals(uri)) {
             return "start";
         } else {
-            uri = uri.replaceAll("^/(.*)", "$1")
-                    .replaceAll("^(.*?)/$", "$1")
+            uri = uri.replaceAll("^/", "")
+                    .replaceAll("/$", "")
                     .replaceAll("//+", "/");
             String parts[] = uri.split("/");
             return parts[parts.length - 1];
@@ -113,7 +127,19 @@ public class MinimalWikiServlet extends HttpServlet {
         for (String name : wikiName.split("/")) {
             textFile = new File(textFile, URLEncoder.encode(name, "UTF-8"));
         }
+        LOG.debug("getWikiFile(" + wikiName + "," + textFile.getAbsolutePath() + ")");
         return textFile;
     }
-
+    
+    protected void validatePath(String uri) throws IOException {
+        File curr = new File(dataPath, uri);
+        while (curr != null) {
+            if (dataPath.equals(curr)) {
+                return;
+            }
+            curr = curr.getParentFile();
+        }
+        throw new IOException(uri + " is not valid path.");
+    }
+    */
 }

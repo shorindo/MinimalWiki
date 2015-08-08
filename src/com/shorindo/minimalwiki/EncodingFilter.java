@@ -30,18 +30,15 @@ import javax.servlet.ServletResponse;
 public class EncodingFilter implements Filter {
     private String encoding = "UTF-8";
 
-    @Override
     public void destroy() {
     }
 
-    @Override
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         request.setCharacterEncoding(encoding);
         chain.doFilter(request, response);
     }
 
-    @Override
     public void init(FilterConfig config) throws ServletException {
         encoding = config.getInitParameter("encoding");
     }
