@@ -39,11 +39,11 @@ $(function () {
     $('#tabs').w2tabs({
         name: 'tabs',
         active: '<wiki:write name="active"/>',
-        right: '<div id="breadcrumb">a&gt;b&gt;c</div>' +
+        right: '<div id="breadcrumb"></div>' +
                '<div id="list-button" class="w2ui-icon icon-tile" title="一覧"></div>' +
                '<div id="save-button" class="w2ui-icon icon-page" title="保存" onclick="save(event)"></div>',
         tabs: [
-            { id: 'tab-view', caption: '<%= request.getAttribute("title") %>' },
+            { id: 'tab-view', caption: '<wiki:write name="title"/>' },
             { id: 'tab-edit', caption: 'edit' }
         ],
         onRender: function(event) {
@@ -119,8 +119,8 @@ $(function () {
             return false;
         }
     });
-    $('#<%= request.getAttribute("active") %>').show();
-    $('#<%= request.getAttribute("active") %>').focus();
+    $('#<wiki:write name="active"/>').show();
+    $('#<wiki:write name="active"/>').focus();
     $('#tab-edit').on('keypress', function(evt) {
         if (evt.ctrlKey && evt.charCode == 115) {
             evt.preventDefault();
@@ -129,6 +129,22 @@ $(function () {
             return false;
         }
     });
+    $(window).load(function(evt) {
+        console.log("onload");
+        $.ajax({
+            type: "POST",
+            url: location.href,
+            data: "method=breadcrumb",
+            success: function(msg){
+                console.log(msg);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown){
+                alert(errorThrown);
+                this;
+            }
+         });
+    });
+    $(window).unload(function() {});
 });
 
 function save(evt) {

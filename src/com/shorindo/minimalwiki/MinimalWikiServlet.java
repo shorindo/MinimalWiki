@@ -17,6 +17,8 @@ package com.shorindo.minimalwiki;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -89,6 +91,26 @@ public class MinimalWikiServlet extends HttpServlet {
         LOG.debug("doPost(" + path + "," + method + ")");
         if ("save".equals(method)) {
             contentManager.putWikiText(wikiName, request.getParameter("wikiText"));
+        } else if ("breadcrumb".equals(method)) {
+            List<String> breadcrumb = (List<String>)request.getSession().getAttribute("breadcrumb");
+            if (breadcrumb == null) {
+                breadcrumb = new ArrayList<String>();
+                request.getSession().setAttribute("breadcrumb", breadcrumb);
+            }
+            if (breadcrumb.contains(wikiName.getFullName())) {
+                breadcrumb.remove(wikiName.getFullName());
+            }
+            breadcrumb.add(wikiName.getFullName());
+            StringBuffer sb = new StringBuffer("[");
+            String sep = "";
+            for (String name : breadcrumb) {
+                sb.append(sep + "\"" + name.replaceAll("\"", "\\\"") + "\"");
+                sep = ",";
+            }
+            sb.append("]");
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().print(sb.toString());
         }
     }
 
