@@ -1,5 +1,6 @@
 ﻿<%@ page language="java"
     contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://shorindo.com/tags/minimalwiki" prefix="wiki" %>
 <%--
 /*
  * Copyright 2015 Shorindo, Inc.
@@ -20,24 +21,24 @@
 <!doctype html>
 <html>
 <head>
-  <title><%= request.getAttribute("title") %></title>
-  <link rel="stylesheet" type="text/css" href="<%= request.getContextPath() %>/css/w2ui.css" />
-  <link rel="stylesheet" type="text/css" href="<%= request.getContextPath() %>/css/style.css" />
-  <script src="<%=request.getContextPath()%>/js/jquery-2.1.4.js"></script>
-  <script src="<%=request.getContextPath()%>/js/w2ui.js"></script>
-  <script src="<%=request.getContextPath()%>/js/marked.js"></script>
+  <title><wiki:write name="title"/></title>
+  <link rel="stylesheet" type="text/css" href="<wiki:link path="/css/w2ui.css"/>">
+  <link rel="stylesheet" type="text/css" href="<wiki:link path="/css/style.css"/>">
+  <script src="<wiki:link path="/js/jquery-2.1.4.js"/>"></script>
+  <script src="<wiki:link path="/js/w2ui.js"/>"></script>
+  <script src="<wiki:link path="/js/marked.js"/>"></script>
 </head>
 <body>
 
 <div id="tabs" style="width: 100%;"></div>
 <div id="tab-view"></div>
-<textarea id="tab-edit"><%= request.getAttribute("wikiText") %></textarea>
+<textarea id="tab-edit"><wiki:write name="wikiText"/></textarea>
 
 <script type="text/javascript">
 $(function () {
     $('#tabs').w2tabs({
         name: 'tabs',
-        active: '<%= request.getAttribute("active") %>',
+        active: '<wiki:write name="active"/>',
         right: '<div id="breadcrumb">a&gt;b&gt;c</div>' +
                '<div id="list-button" class="w2ui-icon icon-tile" title="一覧"></div>' +
                '<div id="save-button" class="w2ui-icon icon-page" title="保存" onclick="save(event)"></div>',

@@ -29,6 +29,7 @@ import javax.servlet.ServletResponse;
  */
 public class EncodingFilter implements Filter {
     private String encoding = "UTF-8";
+    private String urlEncoding = "ISO8859-1";
 
     public void destroy() {
     }

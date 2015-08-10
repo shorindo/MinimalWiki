@@ -4,8 +4,8 @@
     "http://java.sun.com/j2ee/dtds/web-app_2_3.dtd">
 
 <web-app>
-  <display-name>Xiki Engine</display-name>
-  <description>Xiki Engine</description>
+  <display-name>MinimalWiki</display-name>
+  <description>MinimalWiki</description>
 
   <filter>
       <filter-name>Set Character Encoding</filter-name>
@@ -33,4 +33,8 @@
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
 
+  <taglib>
+     <taglib-uri>http://shorindo.com/tags/minimalwiki</taglib-uri>
+     <taglib-location>/WEB-INF/wikitag.tld</taglib-location>
+  </taglib>
 </web-app>

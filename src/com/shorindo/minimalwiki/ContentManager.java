@@ -16,7 +16,6 @@
 package com.shorindo.minimalwiki;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,9 +46,9 @@ public class ContentManager {
         this.root = root;
     }
     
-    public void putWikiText(String path, String wikiText) throws IOException {
-        validatePath(path);
-        File wikiFile = getWikiFile(path);
+    public void putWikiText(WikiName wikiName, String wikiText) throws IOException {
+        validatePath(wikiName.getFullName());
+        File wikiFile = getWikiFile(wikiName.getFullName());
         if (!wikiFile.exists()) {
             wikiFile.getParentFile().mkdirs();
         }
@@ -58,9 +57,9 @@ public class ContentManager {
         writer.close();
     }
     
-    public String getWikiText(String path) throws IOException {
-        validatePath(path);
-        File wikiFile = getWikiFile(path);
+    public String getWikiText(WikiName wikiName) throws IOException {
+        validatePath(wikiName.getFullName());
+        File wikiFile = getWikiFile(wikiName.getFullName());
         if (wikiFile.exists()) {
             StringBuffer sb = new StringBuffer();
             Reader reader = new InputStreamReader(new FileInputStream(wikiFile));
