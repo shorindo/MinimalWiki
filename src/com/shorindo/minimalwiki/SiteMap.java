@@ -58,7 +58,7 @@ public class SiteMap {
             this.name = name;
         }
         
-        @XmlElement(name="name")
+        @XmlElement(name="size")
         public long getSize() {
             return size;
         }
@@ -67,7 +67,7 @@ public class SiteMap {
             this.size = size;
         }
         
-        @XmlElement(name="name")
+        @XmlElement(name="updateTime")
         public Date getUpdateTime() {
             return updateTime;
         }

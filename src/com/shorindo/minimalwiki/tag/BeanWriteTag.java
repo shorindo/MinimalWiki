@@ -40,7 +40,7 @@ public class BeanWriteTag extends TagSupport {
             if ("context".equals(name)) bean = pageContext.getServletContext();
             pageContext.getOut().print(getBeanValue(bean, property));
         } catch (Exception e) {
-            throw new JspException("HelloTag: " + e.getMessage());
+            throw new JspException("BeanWriteTag: " + e.getMessage());
         }
 
         return SKIP_BODY;

@@ -40,3 +40,13 @@ h2 { font-size: 120%; }
 	padding: 10px;
 	white-space: nowrap;
 }
+.wiki-search {
+    vertical-align: top !important;
+    border-radius: 5px;
+    outline: none;
+    border: 1px solid gray;
+}
+.search-result {
+    font-size: 12px;
+    margin-bottom: 5px;
+}

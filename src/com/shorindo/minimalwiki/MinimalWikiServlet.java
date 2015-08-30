@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.shorindo.minimalwiki.SearchEngine.SearchResult;
+
 /**
  *
  */
@@ -34,12 +36,12 @@ public class MinimalWikiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(MinimalWikiServlet.class);
     private static ContentManager contentManager;
-    File dataPath;
+    private static String baseURL;
+    private File dataPath;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         File base = new File(config.getServletContext().getRealPath("/"));
-        LOG.debug("base=" + base.getAbsolutePath());
         String name = base.getName();
         dataPath = new File(base.getParentFile(), name + "-data");
         if (!dataPath.exists()) {
@@ -58,6 +60,7 @@ public class MinimalWikiServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String path = request.getPathInfo();
+        request.setAttribute("BASE", request.getServletContext().getContextPath() + "/");
         if (path.endsWith(".jsp")) {
             RequestDispatcher dispatcher = request.getServletContext().getNamedDispatcher("jsp");
             dispatcher.forward(request, response);
@@ -91,23 +94,22 @@ public class MinimalWikiServlet extends HttpServlet {
         LOG.debug("doPost(" + path + "," + method + ")");
         if ("save".equals(method)) {
             contentManager.putWikiText(wikiName, request.getParameter("wikiText"));
-        } else if ("breadcrumb".equals(method)) {
-            List<String> breadcrumb = (List<String>)request.getSession().getAttribute("breadcrumb");
-            if (breadcrumb == null) {
-                breadcrumb = new ArrayList<String>();
-                request.getSession().setAttribute("breadcrumb", breadcrumb);
+        } else if ("search".equals(method)) {
+            String searchText = request.getParameter("searchText");
+            SearchEngine engine = new SearchEngine(contentManager);
+            StringBuffer sb = new StringBuffer();
+            sb.append("{\"searchText\":\"" + searchText + "\",\"result\":[");
+            String sep = ",";
+            boolean first = true;
+            for (SearchResult result : engine.search(searchText)) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(sep);
+                }
+                sb.append(result.toJSON());
             }
-            if (breadcrumb.contains(wikiName.getFullName())) {
-                breadcrumb.remove(wikiName.getFullName());
-            }
-            breadcrumb.add(wikiName.getFullName());
-            StringBuffer sb = new StringBuffer("[");
-            String sep = "";
-            for (String name : breadcrumb) {
-                sb.append(sep + "\"" + name.replaceAll("\"", "\\\"") + "\"");
-                sep = ",";
-            }
-            sb.append("]");
+            sb.append("]}");
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().print(sb.toString());

@@ -8,6 +8,15 @@
   <description>MinimalWiki</description>
 
   <filter>
+      <filter-name>Host Access Restriction</filter-name>
+      <filter-class>com.shorindo.minimalwiki.HostFilter</filter-class>
+      <init-param>
+          <param-name>allow</param-name>
+          <param-value>127.0.0.1</param-value>
+      </init-param>
+  </filter>
+
+  <filter>
       <filter-name>Set Character Encoding</filter-name>
       <filter-class>com.shorindo.minimalwiki.EncodingFilter</filter-class>
       <init-param>
@@ -15,6 +24,11 @@
           <param-value>UTF-8</param-value>
       </init-param>
   </filter>
+
+  <filter-mapping>
+      <filter-name>Host Access Restriction</filter-name>
+      <url-pattern>/*</url-pattern>
+  </filter-mapping>
 
   <filter-mapping>
       <filter-name>Set Character Encoding</filter-name>

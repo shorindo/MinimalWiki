@@ -22,6 +22,7 @@
 <html>
 <head>
   <title><wiki:write name="title"/></title>
+  <base href="<wiki:write name='BASE'/>">
   <link rel="stylesheet" type="text/css" href="<wiki:link path="/css/w2ui.css"/>">
   <link rel="stylesheet" type="text/css" href="<wiki:link path="/css/style.css"/>">
   <script src="<wiki:link path="/js/jquery-2.1.4.js"/>"></script>
@@ -40,7 +41,10 @@ $(function () {
         name: 'tabs',
         active: '<wiki:write name="active"/>',
         right: '<div id="breadcrumb"></div>' +
-               '<div id="list-button" class="w2ui-icon icon-tile" title="一覧"></div>' +
+               '<input id="search-text" class="wiki-search" title="検索語">' +
+               '<div id="search-button" class="w2ui-icon w2ui-icon-search" title="検索" onclick="search()"></div>' +
+               '<div id="history-button" class="w2ui-icon w2ui-icon-empty" title="履歴"></div>' + 
+               '<div id="list-button" class="w2ui-icon w2ui-icon-columns" title="一覧"></div>' +
                '<div id="save-button" class="w2ui-icon icon-page" title="保存" onclick="save(event)"></div>',
         tabs: [
             { id: 'tab-view', caption: '<wiki:write name="title"/>' },
@@ -104,6 +108,34 @@ $(function () {
             });
         }, 1000);
     }
+    
+    function showBreadCrumb() {
+        //console.log("showBreadCrumb");
+        var history = JSON.parse(localStorage.getItem("breadcrumb"));
+        if (!history) history = [];
+        var spare = history.length - 7;
+        history.splice(0, spare);
+        for (var i = history.length - 1; i >= 0; i--) {
+            if (history[i].url == location.href) {
+                history.splice(i, 1);
+            }
+        }
+        history.push({
+            title: document.title,
+            url: location.href
+        });
+
+        var html = "";
+        var sep = "";
+        for (var i = 0; i < history.length; i++) {
+            var crumb = history[i];
+            html += sep + '<a href="' + crumb.url + '">' + crumb.title + '</a>';
+            sep = " &gt; ";
+        }
+        $('#breadcrumb').html(html);
+
+        localStorage.setItem("breadcrumb", JSON.stringify(history));
+    }
 
     $(window).on('load', onResize);
     $(window).on('resize', onResize);
@@ -129,20 +161,16 @@ $(function () {
             return false;
         }
     });
+    $('#tabs').w2tabs().on({type:"refresh",execute:"after"}, function(event) {
+        showBreadCrumb();
+    });
     $(window).load(function(evt) {
-        console.log("onload");
-        $.ajax({
-            type: "POST",
-            url: location.href,
-            data: "method=breadcrumb",
-            success: function(msg){
-                console.log(msg);
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown){
-                alert(errorThrown);
-                this;
+        showBreadCrumb();
+        $('#search-text').on('keydown', function(evt) {
+            if (evt.keyCode == 13) {
+                search();
             }
-         });
+        });
     });
     $(window).unload(function() {});
 });
@@ -160,6 +188,29 @@ function save(evt) {
             this;
         }
      });
+}
+
+function search(searchText) {
+    $.ajax({
+        type: "POST",
+        url: location.href,
+        data: "method=search&searchText=" + encodeURIComponent($('#search-text').val()),
+        success: function(result){
+            var html = "";
+            for (var i = 0; i < result.result.length; i++) {
+                var r = result.result[i];
+                html += '<div class="search-result"><a href="' + r.fullName + '">' + r.name + '</a></div>';
+            }
+            if (result.result.length == 0) {
+                html = '<div class="search-result">見つかりませんでした</div>';
+            }
+            message($("#search-text"), '<div class="message">' + html + '</div>');
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown){
+            alert(errorThrown);
+            this;
+        }
+     }); 
 }
 
 function message($target, text) {

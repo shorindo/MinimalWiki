@@ -18,6 +18,7 @@ package com.shorindo.minimalwiki;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -40,8 +41,8 @@ import com.shorindo.minimalwiki.SiteMap.Page;
  */
 public class ContentManager {
     private static Logger LOG = Logger.getLogger(ContentManager.class);
-    File root;
-    
+    private File root;
+
     public ContentManager(File root) {
         this.root = root;
     }
@@ -53,6 +54,9 @@ public class ContentManager {
             wikiFile.getParentFile().mkdirs();
         }
         Writer writer = new OutputStreamWriter(new FileOutputStream(wikiFile), "UTF-8");
+        writer.write(wikiText);
+        writer.close();
+        writer = new OutputStreamWriter(new FileOutputStream(getWikiHistory(wikiName.getFullName())), "UTF-8");
         writer.write(wikiText);
         writer.close();
     }
@@ -82,9 +86,9 @@ public class ContentManager {
 
     public SiteMap createSiteMap() throws IOException{
         SiteMap siteMap = new SiteMap();
-        for (File file : listWikiFiles(root)) {
+        for (File file : listWikiFiles()) {
             Page page = new Page(
-                    file2WikiName(file),
+                    file2WikiName(file).getFullName(),
                     file.length(),
                     new Date(file.lastModified())
                     );
@@ -128,6 +132,19 @@ public class ContentManager {
         return textFile;
     }
     
+    protected File getWikiHistory(String wikiName) throws IOException {
+        File histDir = new File(root.getAbsolutePath());
+        String histName = normalizeWikiName(wikiName) + ".hist";
+        for (String name : histName.split("/")) {
+            histDir = new File(histDir, URLEncoder.encode(name, "UTF-8"));
+        }
+        if (!histDir.exists()) {
+            histDir.mkdirs();
+        }
+        File histFile = new File(histDir, (new Date()).getTime() + ".txt");
+        return histFile;
+    }
+    
     protected void validatePath(String uri) throws IOException {
         File curr = new File(root, uri);
         while (curr != null) {
@@ -139,10 +156,14 @@ public class ContentManager {
         throw new IOException(uri + " is not valid path.");
     }
 
-    protected List<File> listWikiFiles(File base) {
+    public List<File> listWikiFiles() {
+        return listWikiFiles(root);
+    }
+
+    private List<File> listWikiFiles(File base) {
         List<File> fileList = new ArrayList<File>();
         for (File file : base.listFiles()) {
-            if (file.isDirectory()) {
+            if (file.isDirectory() && !file.getName().endsWith(".hist")) {
                 fileList.addAll(listWikiFiles(file));
             } else if (file.getName().endsWith(".txt")) {
                 fileList.add(file);
@@ -151,7 +172,7 @@ public class ContentManager {
         return fileList;
     }
     
-    protected String file2WikiName(File file) throws IOException {
+    public WikiName file2WikiName(File file) throws IOException {
         File curr = file;
         String result = "";
         while (curr != null && !root.equals(curr)) {
@@ -164,6 +185,6 @@ public class ContentManager {
             curr = curr.getParentFile();
         }
         LOG.debug("file2WikiName():" + result.toString());
-        return result.toString();
+        return new WikiName(result.toString());
     }
 }
